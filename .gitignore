@@ -1,0 +1,28 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# Node / Expo
+node_modules/
+.expo/
+dist/
+web-build/
+mobile/ios/
+mobile/android/
+
+# OS and editors
+.DS_Store
+Thumbs.db
+*.log
+
+# Test output
+TestResults/
+*.sqlite
+*.sqlite-journal

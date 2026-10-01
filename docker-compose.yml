@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: tevscare
+      POSTGRES_PASSWORD: tevscare_dev_password
+      POSTGRES_DB: tevscare
+    ports:
+      - "5432:5432"
+    volumes:
+      - tevscare_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tevscare -d tevscare"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  tevscare_pg:
