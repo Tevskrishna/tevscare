@@ -16,6 +16,11 @@ using Tevscare.Infrastructure.Persistence;
 using Tevscare.Infrastructure.Seeding;
 
 LoadDotEnv();
+var platformPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(platformPort))
+{
+    Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://+:{platformPort}");
+}
 
 var builder = WebApplication.CreateBuilder(args);
 

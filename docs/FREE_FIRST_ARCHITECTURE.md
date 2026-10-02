@@ -41,4 +41,4 @@ Render free web service
 Neon free PostgreSQL
 ```
 
-The computer does not stay on. The phone does not need the home Wi-Fi. That path works only after the accounts exist and the health URL answers from the public internet. It does not answer yet.
+The computer does not need to stay on, and the phone does not need the home Wi-Fi, only after the accounts exist and the health URL answers from the public internet. Those accounts are not connected. No public URL has been created.

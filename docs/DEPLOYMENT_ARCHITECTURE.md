@@ -33,7 +33,7 @@ Business code does not contain a production host name. The API reads connection 
 
 ## API process
 
-`backend/Dockerfile` publishes the existing API. The container listens on HTTP port 8080. The host in front of it terminates TLS and should send `X-Forwarded-Proto`. Production sets `Tevscare__TrustForwardedHeaders=true` for that proxy. Do not turn that on for a process exposed directly to the internet.
+`backend/Dockerfile` publishes the existing API. Local Docker listens on HTTP port 8080. On Render, the process listens on the platform `PORT` variable. Render terminates TLS and should send `X-Forwarded-Proto`. Staging and Production set `Tevscare__TrustForwardedHeaders=true` for that proxy. Do not turn that on for a process exposed directly to the internet.
 
 Startup applies EF migrations when `Tevscare__ApplyMigrations` is true, which is the default. That is safe for one API instance. It does not drop tables. For more than one instance, set the flag to false and run migrations as a release step.
 

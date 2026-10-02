@@ -29,7 +29,7 @@ Updated after the local MVP polish pass. This is not an App Store or Play Store 
 
 ## Phone access
 
-Expo Go can open the app only while this computer is running and the phone shares its network. A phone on mobile data needs the free staging host in [FREE_HOSTING_OPTIONS.md](FREE_HOSTING_OPTIONS.md). That host does not exist yet, so remote phone access is not available.
+Expo Go can open the app only while this computer is running and the phone shares its network. A phone on mobile data needs the free staging host in [FREE_HOSTING_OPTIONS.md](FREE_HOSTING_OPTIONS.md). Render, Neon, and Cloudflare are not connected, so there is no public API URL and remote phone access is not available.
 
 ## Known limitations
 

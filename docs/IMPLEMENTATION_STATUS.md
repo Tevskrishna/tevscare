@@ -43,7 +43,7 @@ Updated after the admin desk was added to the existing local MVP. This is not a 
 | Domain and TLS certificate | REQUIRES EXTERNAL ACCOUNT |
 | Production JWT key and connection string | REQUIRES SECRET |
 | Store signing | REQUIRES EXTERNAL ACCOUNT and REQUIRES SECRET |
-| Actual cloud deployment | NOT IMPLEMENTED. Free Render, Neon, and Cloudflare Pages are documented. No account was created. |
+| Actual cloud deployment | NOT IMPLEMENTED. The API listens on Render's PORT. No Render, Neon, or Cloudflare account is connected, so no public URL exists. |
 | Powered by TEVS | IMPLEMENTED on welcome, sign-in, account creation, onboarding, settings, about, privacy, admin sign-in, admin footer, and the reset email body |
 
 ## MISSING
