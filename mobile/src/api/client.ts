@@ -1,10 +1,27 @@
 import * as SecureStore from "expo-secure-store";
+import { isPublicHttpsApiUrl } from "../lib/apiUrl";
 
 const ACCESS = "tevscare.access";
 const REFRESH = "tevscare.refresh";
 const USER = "tevscare.user";
 
-export const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5080";
+const appEnvironment = process.env.EXPO_PUBLIC_APP_ENV ?? "development";
+const configuredApiUrl = process.env.EXPO_PUBLIC_API_URL;
+export const apiBaseUrl = configuredApiUrl ?? "http://localhost:5080";
+
+if (appEnvironment !== "development" && !isPublicHttpsApiUrl(configuredApiUrl)) {
+  throw new Error("Staging and production builds require EXPO_PUBLIC_API_URL to be a public https address.");
+}
+
+function friendlyError(status: number, detail: string | undefined) {
+  if (status === 401) return "Sign in again.";
+  if (status === 403) return "You do not have access to this.";
+  if (status === 0 || status === 408 || status >= 500) return "Connection unavailable. Please try again.";
+  if (!detail || /localhost|127\.0\.0\.1|192\.168\.|exception|stack trace/i.test(detail)) {
+    return "That did not work. Please try again.";
+  }
+  return detail;
+}
 
 export class ApiError extends Error {
   status: number;
@@ -102,10 +119,14 @@ export async function api<T>(path: string, init: RequestInit = {}, allowRefresh 
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
   let response: Response;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 45000);
   try {
-    response = await fetch(`${apiBaseUrl}${path}`, { ...init, headers });
+    response = await fetch(`${apiBaseUrl}${path}`, { ...init, headers, signal: controller.signal });
   } catch {
-    throw new ApiError("You appear to be offline. Saved items will sync when the connection returns.", 0);
+    throw new ApiError("Connection unavailable. Please try again.", 0);
+  } finally {
+    clearTimeout(timer);
   }
   if (response.status === 401 && allowRefresh && refreshToken && !path.startsWith("/api/auth/")) {
     const refreshed = await refreshSession();
@@ -113,11 +134,18 @@ export async function api<T>(path: string, init: RequestInit = {}, allowRefresh 
   }
   if (response.status === 204) return undefined as T;
   const text = await response.text();
-  const body = text ? (JSON.parse(text) as { detail?: string; title?: string }) : null;
-  if (!response.ok) {
-    throw new ApiError(body?.detail || body?.title || "The request could not be completed.", response.status);
+  let body: { detail?: string; title?: string } | null = null;
+  if (text) {
+    try {
+      body = JSON.parse(text) as { detail?: string; title?: string };
+    } catch {
+      body = null;
+    }
   }
-  return (text ? JSON.parse(text) : undefined) as T;
+  if (!response.ok) {
+    throw new ApiError(friendlyError(response.status, body?.detail || body?.title), response.status);
+  }
+  return (body ?? undefined) as T;
 }
 
 export async function login(email: string, password: string) {

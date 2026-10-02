@@ -10,7 +10,7 @@ const english = {
   profile: "Profile",
   greeting: "Hello",
   loadingToday: "Preparing today",
-  offlinePlan: "You're offline. Your saved plan is still here when it has been opened before.",
+  offlinePlan: "Connection unavailable. Please try again.",
   planWindowDone: "This plan window is complete.",
   planDay: "Day {{day}} of {{total}}",
   finishSetup: "Finish setup to see a plan.",

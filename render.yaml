@@ -1,0 +1,28 @@
+# Optional Render blueprint for a free staging API.
+# This file does not deploy anything by itself.
+# Secrets are entered in the Render dashboard and are not stored here.
+services:
+  - type: web
+    name: tevscare-api
+    runtime: docker
+    plan: free
+    dockerfilePath: backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Staging
+      - key: Tevscare__SeedDemoData
+        value: "false"
+      - key: Tevscare__ExposeResetTokens
+        value: "false"
+      - key: Tevscare__ApplyMigrations
+        value: "true"
+      - key: Tevscare__TrustForwardedHeaders
+        value: "true"
+      - key: ConnectionStrings__Default
+        sync: false
+      - key: Jwt__SigningKey
+        generateValue: true
+      - key: Cors__Origins__0
+        sync: false

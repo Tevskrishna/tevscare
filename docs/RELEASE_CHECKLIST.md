@@ -17,6 +17,24 @@ Do not ship until each item is actually done. None of the store items below are 
 - [ ] Notification permission copy is reviewed
 - [ ] A device pass covers login, onboarding, home, plan, meal log, water, weight, activity, sleep, progress, shopping, budget, reminders, profile, and settings
 - [ ] No `.env` file is in git
+- [ ] `GET /health/ready` returns ready against the hosted database
+- [ ] An EAS production build was made with the public https API URL. This repository has not made that build
+- [ ] Admin `VITE_API_URL` points at the same hosted API
+
+## Blockers
+
+| Item | Status |
+| --- | --- |
+| Local API and database | DONE |
+| Free staging host | FREE OPTION, REQUIRES EXTERNAL ACCOUNT, REQUIRES MANUAL ACTION |
+| Remote database | FREE OPTION, REQUIRES EXTERNAL ACCOUNT |
+| Public API URL | NOT NEEDED until the host exists, then REQUIRES MANUAL ACTION |
+| Custom domain | NOT NEEDED YET |
+| Email delivery | NOT NEEDED YET |
+| Remote push | NOT NEEDED YET |
+| Payments | NOT NEEDED YET |
+| Play Store and App Store | REQUIRES PAYMENT when you choose to publish |
+| Signing credentials | REQUIRES EXTERNAL ACCOUNT and REQUIRES MANUAL ACTION |
 
 ## Explicitly not in this build
 

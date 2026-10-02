@@ -12,7 +12,7 @@ npx expo start
 
 ## API address
 
-Copy `mobile/.env.example` to `mobile/.env`. Expo reads that file, not the repository-root `.env`. `EXPO_PUBLIC_API_URL` defaults to `http://localhost:5080`.
+Copy `mobile/.env.example` to `mobile/.env`. Expo reads that file, not the repository-root `.env`. `EXPO_PUBLIC_API_URL` defaults to `http://localhost:5080` for development. Expo Go is a development tool. A staging or production build reads a public `https` URL from EAS and does not use Expo Go.
 
 - iOS simulator: localhost works.
 - Android emulator: `http://10.0.2.2:5080`

@@ -1,5 +1,6 @@
 import { Text } from "react-native";
 import { Screen } from "../../src/components/Screen";
+import { TevsBrand } from "../../src/components/TevsBrand";
 import { AppHeader, Disclaimer, useColors } from "../../src/components/ui";
 
 export default function PrivacyScreen() {
@@ -15,6 +16,7 @@ export default function PrivacyScreen() {
       <Text style={{ fontFamily: "Jakarta", color: colors.ink, lineHeight: 22 }}>
         The meal plan is provider guidance for planning and habit tracking. It is not medical care, and it does not promise a weight change.
       </Text>
+      <TevsBrand />
     </Screen>
   );
 }

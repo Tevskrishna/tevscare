@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { api, clearSession, getCurrentUser, updateStoredUser } from "../../src/api/client";
 import { Screen } from "../../src/components/Screen";
+import { TevsBrand } from "../../src/components/TevsBrand";
 import { AppHeader, ConfirmationModal, PrimaryButton, SearchInput, useColors } from "../../src/components/ui";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -37,7 +38,9 @@ export default function SettingsScreen() {
         ))}
       </View>
       <Text style={{ fontFamily: "Jakarta", color: colors.muted }}>Security: the session token stays in secure storage on this phone. Sign out or delete the account to remove it.</Text>
+      <Text style={{ fontFamily: "Jakarta", color: colors.muted }}>Reminders stay on this phone. A remote push service is not connected.</Text>
       <Text style={{ fontFamily: "Jakarta", color: colors.muted }}>Version {Constants.expoConfig?.version ?? "1.0.0"}</Text>
+      <TevsBrand />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {locales.map((locale) => (
           <Pressable key={locale} accessibilityRole="button" onPress={async () => { await i18n.changeLanguage(locale); const profile = await api<Record<string, unknown>>("/api/profile"); await api("/api/profile", { method: "PUT", body: JSON.stringify({ ...profile, preferredLanguage: locale }) }); }} style={{ minHeight: 44, paddingHorizontal: 12, justifyContent: "center" }}>

@@ -45,7 +45,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test src/lib/planning.test.ts"
+    "test": "node --experimental-strip-types --test src/lib/planning.test.ts src/lib/apiUrl.test.ts"
   },
   "private": true
 }

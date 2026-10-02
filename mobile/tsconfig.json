@@ -3,5 +3,5 @@
   "compilerOptions": {
     "strict": true
   },
-  "exclude": ["src/lib/planning.test.ts"]
+  "exclude": ["src/lib/planning.test.ts", "src/lib/apiUrl.test.ts"]
 }

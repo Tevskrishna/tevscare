@@ -150,7 +150,7 @@ public class AuthService : IAuthService
         await _email.SendAsync(
             user.Email!,
             "Reset your TEVSCARE password",
-            $"Use this reset token within 30 minutes: {token}",
+            $"Use this reset token within 30 minutes: {token}\n\nPowered by TEVS",
             cancellationToken);
 
         return new MessageResponse(message, _options.ExposeResetTokens ? token : null);

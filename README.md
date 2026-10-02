@@ -54,7 +54,7 @@ npm install
 npx expo start
 ```
 
-Then press `a` for Android or `i` for iOS. On a physical phone, set `EXPO_PUBLIC_API_URL` to your computer's LAN address, for example `http://192.168.1.20:5080`. Android emulator often needs `http://10.0.2.2:5080`.
+Then press `a` for Android or `i` for iOS. That is development only. A phone on another network cannot use this computer. Android emulator often needs `http://10.0.2.2:5080` in `mobile/.env`. Do not put that address in a staging or production build.
 
 ## 5. Admin desk
 
@@ -81,6 +81,10 @@ npm run typecheck
 
 API tests use SQLite and do not need Docker.
 
+## Cloud
+
+Development still uses this computer. A phone on mobile data needs the free staging host in [FREE_HOSTING_OPTIONS.md](docs/FREE_HOSTING_OPTIONS.md). That host is not created yet. Powered by TEVS.
+
 ## Current limits
 
 The app runs locally. It is not a store release. See [product status](docs/PRODUCT_STATUS.md) and the [release checklist](docs/RELEASE_CHECKLIST.md).
@@ -92,5 +96,8 @@ The app runs locally. It is not a store release. See [product status](docs/PRODU
 - [Database](docs/DATABASE.md)
 - [Mobile setup](docs/MOBILE_SETUP.md)
 - [Deployment](docs/DEPLOYMENT.md)
+- [Free hosting options](docs/FREE_HOSTING_OPTIONS.md)
+- [Free-first architecture](docs/FREE_FIRST_ARCHITECTURE.md)
+- [Notifications](docs/NOTIFICATIONS.md)
 - [Security](docs/SECURITY.md)
 - [Contributing](CONTRIBUTING.md)

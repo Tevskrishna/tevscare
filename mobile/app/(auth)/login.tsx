@@ -7,6 +7,7 @@ import { z } from "zod";
 import { ApiError, login } from "../../src/api/client";
 import { useSession } from "../../src/lib/session";
 import { Screen } from "../../src/components/Screen";
+import { TevsBrand } from "../../src/components/TevsBrand";
 import { AppHeader, ErrorState, PrimaryButton, SearchInput, useColors } from "../../src/components/ui";
 
 const schema = z.object({
@@ -40,6 +41,7 @@ export default function LoginScreen() {
       <Pressable accessibilityRole="button" onPress={() => router.push("/(auth)/forgot")}>
         <Text style={{ fontFamily: "JakartaSemi", color: colors.primary }}>Forgot password</Text>
       </Pressable>
+      <TevsBrand />
     </Screen>
   );
 }

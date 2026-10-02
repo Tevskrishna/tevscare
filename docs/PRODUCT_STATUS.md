@@ -27,6 +27,10 @@ Updated after the local MVP polish pass. This is not an App Store or Play Store 
 - English copy for the home screen and tabs lives in the localization catalog. Other languages fall back to English
 - Notification delivery is local only. The code names that transport so a push adapter can be added later
 
+## Phone access
+
+Expo Go can open the app only while this computer is running and the phone shares its network. A phone on mobile data needs the free staging host in [FREE_HOSTING_OPTIONS.md](FREE_HOSTING_OPTIONS.md). That host does not exist yet, so remote phone access is not available.
+
 ## Known limitations
 
 - No phone or emulator walkthrough was completed in this pass

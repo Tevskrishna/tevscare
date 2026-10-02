@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { ApiError, api, getCurrentUser, updateStoredUser } from "../../src/api/client";
 import { Screen } from "../../src/components/Screen";
+import { TevsBrand } from "../../src/components/TevsBrand";
 import { AppHeader, ErrorState, PrimaryButton, SearchInput, useColors } from "../../src/components/ui";
 import { track } from "../../src/lib/analytics";
 import { useSession } from "../../src/lib/session";
@@ -95,6 +96,7 @@ export default function OnboardingScreen() {
       <SearchInput value={activityGoalMinutes} onChangeText={setActivityGoalMinutes} placeholder="Activity goal in minutes" />
       {error ? <ErrorState body={error} /> : null}
       <PrimaryButton label={save.isPending ? "Saving" : "Save and continue"} disabled={save.isPending} onPress={() => save.mutate()} />
+      <TevsBrand />
     </Screen>
   );
 }

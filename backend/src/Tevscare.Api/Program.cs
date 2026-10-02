@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -99,18 +100,26 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
-var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:8081"];
+if (builder.Configuration.GetValue("Tevscare:TrustForwardedHeaders", false))
+{
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+}
+
+var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("mobile", policy =>
     {
-        if (builder.Environment.IsDevelopment())
+        policy.AllowAnyHeader().AllowAnyMethod();
+        if (corsOrigins.Length > 0)
         {
-            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-            return;
+            policy.WithOrigins(corsOrigins);
         }
-
-        policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod();
     });
 });
 
@@ -123,17 +132,27 @@ await using (var scope = app.Services.CreateAsyncScope())
     {
         await db.Database.EnsureCreatedAsync();
     }
-    else
+    else if (app.Configuration.GetValue("Tevscare:ApplyMigrations", true))
     {
         await db.Database.MigrateAsync();
     }
 
-    var seedDemo = app.Configuration.GetValue("Tevscare:SeedDemoData", app.Environment.IsDevelopment());
+    var seedDemo = app.Configuration.GetValue("Tevscare:SeedDemoData", false);
+    if (app.Environment.IsProduction())
+    {
+        seedDemo = false;
+    }
+
     await DatabaseSeeder.SeedAsync(
         db,
         scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
         scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>(),
         seedDemo);
+}
+
+if (app.Configuration.GetValue("Tevscare:TrustForwardedHeaders", false))
+{
+    app.UseForwardedHeaders();
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -151,6 +170,13 @@ app.UseAuthorization();
 app.UseRateLimiter();
 app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "tevscare" })).AllowAnonymous();
+app.MapGet("/health/ready", async (AppDbContext db) =>
+{
+    var connected = await db.Database.CanConnectAsync();
+    return connected
+        ? Results.Ok(new { status = "ready" })
+        : Results.Json(new { status = "unavailable" }, statusCode: StatusCodes.Status503ServiceUnavailable);
+}).AllowAnonymous();
 app.Run();
 
 static void LoadDotEnv()

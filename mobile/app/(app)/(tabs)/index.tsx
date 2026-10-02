@@ -57,6 +57,11 @@ export default function HomeScreen() {
     <Screen>
       <Text style={{ fontFamily: "Jakarta", color: colors.muted }}>{data.displayDate}</Text>
       <Text style={{ fontFamily: "Fraunces", fontSize: 32, color: colors.ink }}>{t("greeting")}, {user?.fullName.split(" ")[0]}</Text>
+      <View style={{ gap: 4, padding: 16, borderRadius: 18, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line }}>
+        <Text style={{ fontFamily: "JakartaSemi", color: colors.ink }}>Now: {next ? `${mealLabel(next.mealType)} · ${next.title}` : "No meal left to log"}</Text>
+        <Text style={{ fontFamily: "Jakarta", color: colors.muted }}>Still open: {data.water.remainingMl > 0 ? `${data.water.remainingMl} ml water` : "water goal met"}{data.sleep.logged ? "" : " · sleep not logged"}</Text>
+        <Text style={{ fontFamily: "Jakarta", color: colors.muted }}>Done: {data.adherence.score}% of today’s checks. {data.planCompleted ? "This plan window is complete." : `${Math.max(data.planDurationDays - (data.planDayNumber ?? 0), 0)} plan days remain.`}</Text>
+      </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: "JakartaSemi", fontSize: 18, color: colors.ink }}>

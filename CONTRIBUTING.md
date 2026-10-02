@@ -7,6 +7,8 @@
 
 Keep diet text in the database seed or admin API, not in React components.
 
+After a change is reviewed and the tests pass, commit and push that commit. Do not push on every file save. Never commit `.env`, signing keys, or store credentials.
+
 Do not commit `.env`, tokens, or store signing keys.
 
 Prefer a small change in the existing layer over a new service. The API is one process on purpose.

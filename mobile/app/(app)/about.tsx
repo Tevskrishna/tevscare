@@ -1,5 +1,6 @@
 import { Text } from "react-native";
 import { Screen } from "../../src/components/Screen";
+import { TevsBrand } from "../../src/components/TevsBrand";
 import { AppHeader, Disclaimer, useColors } from "../../src/components/ui";
 
 export default function AboutScreen() {
@@ -8,9 +9,10 @@ export default function AboutScreen() {
     <Screen>
       <AppHeader title="About TEVSCARE" subtitle="A meal plan, a daily log, and a food budget." />
       <Text style={{ fontFamily: "Jakarta", color: colors.ink, lineHeight: 22 }}>
-        The starter plan is a 15-day breakfast rotation with almonds, walnuts and a protein choice, plus lunch, snacks, dinner, water, activity and sleep notes. A nutritionist can replace that content through the API. The free plan is the current entitlement. Paid plans are represented, but no payment is collected in this version.
+        The starter plan is a 15-day breakfast rotation with almonds, walnuts and a protein choice, plus lunch, snacks, dinner, water, activity and sleep notes. A nutritionist can replace that content through the API. An account can be marked Free, Trial, Premium, or Expired. This version does not collect payment.
       </Text>
       <Disclaimer />
+      <TevsBrand />
     </Screen>
   );
 }

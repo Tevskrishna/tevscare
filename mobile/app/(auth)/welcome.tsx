@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { Text, View } from "react-native";
 import { Screen } from "../../src/components/Screen";
+import { TevsBrand } from "../../src/components/TevsBrand";
 import { AppHeader, Disclaimer, PrimaryButton, SecondaryButton, useColors } from "../../src/components/ui";
 
 export default function WelcomeScreen() {
@@ -13,6 +14,7 @@ export default function WelcomeScreen() {
         <PrimaryButton label="Create an account" onPress={() => router.push("/(auth)/register")} />
         <SecondaryButton label="I already have an account" onPress={() => router.push("/(auth)/login")} />
         <Disclaimer />
+        <TevsBrand />
       </View>
     </Screen>
   );

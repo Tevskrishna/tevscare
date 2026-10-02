@@ -77,6 +77,7 @@ public static class DependencyInjection
         services.AddScoped<IAdminContentService>(sp => sp.GetRequiredService<ContentService>());
         services.AddScoped<IAdminDirectoryService, AdminDirectoryService>();
         services.AddScoped<IEmailSender, LoggingEmailSender>();
+        services.AddSingleton<IPushNotificationSender, NoRemotePushSender>();
         return services;
     }
 }

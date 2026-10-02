@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ApiError, Session, api, isAdmin, login } from "./api";
+import { TevsBrand } from "./TevsBrand";
 
 const storageKey = "tevscare-admin-session";
 
@@ -98,6 +99,7 @@ export function App() {
           </button>
         ))}
         <button type="button" onClick={signOut}>Sign out</button>
+        <TevsBrand />
       </nav>
       <main>
         {view === "dashboard" && <DashboardView session={session} />}
@@ -137,6 +139,7 @@ function Login({ onSuccess }: { onSuccess: (session: Session) => void }) {
           {error && <p className="error">{error}</p>}
           <button className="primary" type="submit">Sign in</button>
         </form>
+        <TevsBrand />
       </main>
     </div>
   );

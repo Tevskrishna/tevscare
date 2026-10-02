@@ -60,7 +60,8 @@ public enum EntitlementPlan
 {
     Free = 0,
     Premium = 1,
-    Nutritionist = 2
+    Nutritionist = 2,
+    Trial = 3
 }
 
 public enum EntitlementStatus

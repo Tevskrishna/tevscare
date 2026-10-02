@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ApiError, register } from "../../src/api/client";
 import { useSession } from "../../src/lib/session";
 import { Screen } from "../../src/components/Screen";
+import { TevsBrand } from "../../src/components/TevsBrand";
 import { AppHeader, ErrorState, PrimaryButton, SearchInput } from "../../src/components/ui";
 
 const schema = z.object({
@@ -37,6 +38,7 @@ export default function RegisterScreen() {
       <Controller control={form.control} name="password" render={({ field }) => <SearchInput secure value={field.value} onChangeText={field.onChange} placeholder="Password" />} />
       {error ? <ErrorState body={error} /> : null}
       <PrimaryButton label="Continue" onPress={form.handleSubmit(onSubmit)} disabled={form.formState.isSubmitting} />
+      <TevsBrand />
     </Screen>
   );
 }

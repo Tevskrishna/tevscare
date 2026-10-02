@@ -32,6 +32,20 @@ Updated after the admin desk was added to the existing local MVP. This is not a 
 - Translation management for dynamic content is not a desk screen
 - Reminder templates are the user’s notification preferences, not admin-authored templates
 
+## Cloud readiness
+
+| Item | Status |
+| --- | --- |
+| Environment split and public HTTPS requirement | CONFIGURED in code |
+| Dockerfile and health/readiness | IMPLEMENTED |
+| GitHub Actions CI | IMPLEMENTED, not yet run on GitHub |
+| Hosted API and database | REQUIRES EXTERNAL ACCOUNT |
+| Domain and TLS certificate | REQUIRES EXTERNAL ACCOUNT |
+| Production JWT key and connection string | REQUIRES SECRET |
+| Store signing | REQUIRES EXTERNAL ACCOUNT and REQUIRES SECRET |
+| Actual cloud deployment | NOT IMPLEMENTED. Free Render, Neon, and Cloudflare Pages are documented. No account was created. |
+| Powered by TEVS | IMPLEMENTED on welcome, sign-in, account creation, onboarding, settings, about, privacy, admin sign-in, admin footer, and the reset email body |
+
 ## MISSING
 
 - Store icons, splash, bundle ownership, and a device walkthrough

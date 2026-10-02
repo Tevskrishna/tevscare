@@ -13,6 +13,11 @@ public interface IEmailSender
     Task SendAsync(string to, string subject, string body, CancellationToken cancellationToken);
 }
 
+public interface IPushNotificationSender
+{
+    Task SendAsync(Guid userId, string title, string body, CancellationToken cancellationToken);
+}
+
 public interface IAuthService
 {
     Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken);

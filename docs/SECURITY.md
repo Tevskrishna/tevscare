@@ -8,7 +8,11 @@
 - Auth endpoints are rate limited.
 - Security headers are added by middleware.
 - Logs must not include passwords, tokens, or reset-email bodies.
-- `.env` is gitignored. `.env.example` has placeholders. The Docker database password is a local development password, not a production secret.
+- `.env` is gitignored. `.env.example` has the local Docker password that is also in `docker-compose.yml`. It is not a production secret.
+- Production forces demo account seeding off.
+- Staging and production do not return exception messages to clients. The Testing environment still includes the exception type so API tests can diagnose failures.
+- `TrustForwardedHeaders` is for a TLS proxy. Leave it false when the API is reached directly.
+- Browser CORS uses the configured origin list in every environment. An empty list allows no browser origin. Native apps do not use CORS.
 - Analytics events use an allow-list and reject property payloads that contain password or token fields.
 
 This document does not claim HIPAA, GDPR, or any other certification. Privacy and terms screens are placeholders.

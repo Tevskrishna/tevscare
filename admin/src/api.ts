@@ -1,4 +1,7 @@
-const base = (import.meta.env.VITE_API_URL || "http://localhost:5080").replace(/\/$/, "");
+const configured = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+const publicHttps = configured.startsWith("https://") && !/localhost|127\.0\.0\.1|192\.168\.|\b10\.\d+\.\d+\.\d+\b|172\.(1[6-9]|2\d|3[0-1])\./i.test(configured);
+const devFallback = import.meta.env.DEV ? "http://localhost:5080" : "";
+const base = publicHttps ? configured : import.meta.env.DEV ? (configured || devFallback) : "";
 
 export type SessionUser = {
   id: string;
@@ -24,18 +27,38 @@ export class ApiError extends Error {
   }
 }
 
+function friendlyError(status: number, detail: string) {
+  if (status === 401) return "Sign in again.";
+  if (status === 403) return "You do not have access to this.";
+  if (status === 0 || status >= 500) return "Connection unavailable. Please try again.";
+  if (!detail || /localhost|127\.0\.0\.1|exception|stack trace/i.test(detail)) return "That did not work. Please try again.";
+  return detail;
+}
+
 async function readError(response: Response) {
   const body = (await response.json().catch(() => null)) as ErrorBody | null;
   const field = body?.errors ? Object.values(body.errors).flat().join(" ") : "";
-  return body?.detail || field || body?.title || `Request failed (${response.status})`;
+  return friendlyError(response.status, body?.detail || field || body?.title || "");
+}
+
+function requireBase() {
+  if (!base) {
+    throw new ApiError(0, "Connection unavailable. Please try again.");
+  }
 }
 
 export async function login(email: string, password: string): Promise<Session> {
-  const response = await fetch(`${base}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ email, password })
-  });
+  requireBase();
+  let response: Response;
+  try {
+    response = await fetch(`${base}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+  } catch {
+    throw new ApiError(0, "Connection unavailable. Please try again.");
+  }
   if (!response.ok) {
     throw new ApiError(response.status, await readError(response));
   }
@@ -63,7 +86,13 @@ export async function api<T>(session: Session, path: string, init: RequestInit =
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  const response = await fetch(`${base}${path}`, { ...init, headers });
+  requireBase();
+  let response: Response;
+  try {
+    response = await fetch(`${base}${path}`, { ...init, headers });
+  } catch {
+    throw new ApiError(0, "Connection unavailable. Please try again.");
+  }
   if (response.status === 401 && retry) {
     const refreshed = await fetch(`${base}/api/auth/refresh`, {
       method: "POST",
