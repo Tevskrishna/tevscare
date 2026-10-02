@@ -51,7 +51,9 @@ public enum NotificationCategory
     Lunch = 3,
     Activity = 4,
     Dinner = 5,
-    Sleep = 6
+    Sleep = 6,
+    AfternoonSnack = 7,
+    CheckIn = 8
 }
 
 public enum EntitlementPlan

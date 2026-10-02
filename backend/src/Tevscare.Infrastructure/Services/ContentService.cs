@@ -16,7 +16,7 @@ public class ContentService : IFoodService, INotificationPreferenceService, IGui
 {
     private static readonly HashSet<string> AnalyticsNames = new(StringComparer.OrdinalIgnoreCase)
     {
-        "app_opened", "onboarding_completed", "meal_viewed", "meal_completed", "water_logged", "weight_logged", "plan_completed", "notification_opened"
+        "app_opened", "onboarding_completed", "meal_viewed", "meal_completed", "meal_logged", "water_logged", "weight_logged", "activity_logged", "plan_completed", "plan_opened", "notification_opened", "shopping_list_opened", "budget_viewed", "checkin_completed", "reminder_enabled"
     };
 
     private readonly AppDbContext _db;
@@ -356,6 +356,18 @@ public class ContentService : IFoodService, INotificationPreferenceService, IGui
         var settings = await _db.NotificationSettings.Include(item => item.Preferences).FirstOrDefaultAsync(item => item.UserId == userId, cancellationToken);
         if (settings is not null)
         {
+            var missing = NotificationDefaults.Missing(settings).ToList();
+            if (missing.Count > 0)
+            {
+                foreach (var preference in missing)
+                {
+                    _db.NotificationPreferences.Add(preference);
+                    settings.Preferences.Add(preference);
+                }
+
+                await _db.SaveChangesAsync(cancellationToken);
+            }
+
             return settings;
         }
 

@@ -53,7 +53,8 @@ public record ProfileResponse(
     IReadOnlyList<string> Allergies,
     IReadOnlyList<FoodPreferenceDto> FoodPreferences,
     string EntitlementPlan,
-    string Disclaimer);
+    string Disclaimer,
+    string PreferredLanguage);
 
 public record UpdateProfileRequest(
     string FullName,
@@ -73,7 +74,8 @@ public record UpdateProfileRequest(
     string? BreakfastTime,
     string? LunchTime,
     string? DinnerTime,
-    string? SleepTime);
+    string? SleepTime,
+    string? PreferredLanguage = null);
 
 public record MealItemDto(
     Guid Id,
@@ -168,22 +170,23 @@ public record WeightHistoryResponse(
     decimal? WeeklyChangeKg,
     decimal? MonthlyChangeKg,
     int? ProgressPercent,
-    IReadOnlyList<WeightEntryDto> Entries);
+    IReadOnlyList<WeightEntryDto> Entries,
+    decimal? SevenDayAverageKg = null);
 public record LogWeightRequest(decimal WeightKg, bool IsMorning, string? Note, string? LocalDate);
 
 public record LogMealItemRequest(Guid? FoodId, string Name, decimal Quantity, string Unit);
 public record LogMealRequest(string MealType, string Status, string? Notes, string? LocalDate, Guid? MealId, IReadOnlyList<LogMealItemRequest>? Items);
 public record MealLogDto(Guid Id, string LocalDate, string MealType, string Status, string? Notes, IReadOnlyList<LogMealItemRequest> Items);
 
-public record LogActivityRequest(string ActivityType, int DurationMinutes, string? Notes, bool Completed, string? LocalDate);
-public record ActivityDto(Guid Id, string LocalDate, string ActivityType, int DurationMinutes, bool Completed, string? Notes, int GoalMinutes);
+public record LogActivityRequest(string ActivityType, int DurationMinutes, string? Notes, bool Completed, string? LocalDate, int? Steps = null);
+public record ActivityDto(Guid Id, string LocalDate, string ActivityType, int DurationMinutes, bool Completed, string? Notes, int GoalMinutes, int? Steps = null);
 
-public record LogSleepRequest(int DurationMinutes, int? Quality, string? Notes, string? LocalDate);
-public record SleepDto(Guid Id, string LocalDate, int DurationMinutes, int? Quality, string? Notes, int GoalMinutes);
+public record LogSleepRequest(int DurationMinutes, int? Quality, string? Notes, string? LocalDate, string? Bedtime = null, string? WakeTime = null);
+public record SleepDto(Guid Id, string LocalDate, int DurationMinutes, int? Quality, string? Notes, int GoalMinutes, string? Bedtime = null, string? WakeTime = null);
 
-public record CheckInRequest(int? Mood, int? Energy, string? Notes, IReadOnlyList<string>? CompletedHabitCodes, string? LocalDate);
+public record CheckInRequest(int? Mood, int? Energy, string? Notes, IReadOnlyList<string>? CompletedHabitCodes, string? LocalDate, int? Hunger = null, int? Digestion = null, int? SleepQuality = null);
 public record HabitDto(string Code, string Title, string Description, bool Completed);
-public record CheckInResponse(string LocalDate, int? Mood, int? Energy, string? Notes, AdherenceSummaryDto Adherence, IReadOnlyList<HabitDto> Habits);
+public record CheckInResponse(string LocalDate, int? Mood, int? Energy, string? Notes, AdherenceSummaryDto Adherence, IReadOnlyList<HabitDto> Habits, int? Hunger = null, int? Digestion = null, int? SleepQuality = null);
 
 public record ProgressPointDto(string Date, decimal Value);
 public record ProgressResponse(
@@ -195,7 +198,8 @@ public record ProgressResponse(
     IReadOnlyList<ProgressPointDto> Activity,
     IReadOnlyList<ProgressPointDto> Sleep,
     decimal? WeightChange,
-    decimal AverageAdherence);
+    decimal AverageAdherence,
+    IReadOnlyList<ProgressPointDto>? Budget = null);
 
 public record CalendarDayDto(
     string Date,
@@ -230,9 +234,9 @@ public record FoodDto(
     decimal? ReferencePriceInr,
     decimal? YourPriceInr);
 
-public record ShoppingLineDto(Guid FoodId, string Name, string Category, decimal Quantity, string Unit, decimal? EstimatedCost, bool Purchased);
-public record ShoppingListResponse(string StartDate, int Days, decimal TotalKnownCost, bool HasMissingPrices, string Currency, IReadOnlyList<ShoppingLineDto> Lines);
-public record ShoppingToggleRequest(Guid FoodId, int RangeDays, string? StartDate, bool Purchased);
+public record ShoppingLineDto(Guid FoodId, string Name, string Category, decimal Quantity, string Unit, decimal? EstimatedCost, bool Purchased, decimal PlannedQuantity = 0, decimal? ActualUnitPrice = null, decimal? ActualCost = null, string? Notes = null);
+public record ShoppingListResponse(string StartDate, int Days, decimal TotalKnownCost, bool HasMissingPrices, string Currency, IReadOnlyList<ShoppingLineDto> Lines, decimal ActualKnownCost = 0);
+public record ShoppingToggleRequest(Guid FoodId, int RangeDays, string? StartDate, bool Purchased, decimal? Quantity = null, decimal? ActualUnitPrice = null, string? Notes = null, bool UpdateDetails = false);
 
 public record BudgetMealDto(string MealName, decimal EstimatedCost, decimal SpentCost);
 public record BudgetResponse(
@@ -289,4 +293,61 @@ public record CreateMealRequest(string MealType, string Title, string ScheduledT
 public record MealItemWriteRequest(Guid? FoodId, string DisplayName, decimal Quantity, string Unit, int SortOrder, bool IsOptional, string? AlternativeGroup, bool IsDefaultAlternative, string? Note);
 public record UpdateMealRequest(string Title, string? Notes, string ScheduledTime, IReadOnlyList<MealItemWriteRequest> Items);
 public record AssignPlanRequest(Guid UserId, Guid DietPlanId, string StartDate);
+
+public record AdminDashboardResponse(
+    int TotalUsers,
+    int ActiveUsers,
+    int NewUsersLast7Days,
+    int PublishedPlans,
+    int DraftPlans,
+    int ActiveAssignments,
+    int CheckInsLast7Days,
+    int WeightEntriesLast7Days,
+    int WaterEntriesLast7Days,
+    string Database,
+    string Api);
+
+public record AdminUserListItem(
+    Guid Id,
+    string FullName,
+    string Email,
+    IReadOnlyList<string> Roles,
+    DateTime CreatedAtUtc,
+    bool Locked,
+    bool OnboardingCompleted,
+    string EntitlementPlan);
+
+public record AdminUserPage(int Page, int PageSize, int Total, IReadOnlyList<AdminUserListItem> Items);
+
+public record AdminWeightPoint(string Date, decimal WeightKg);
+
+public record AdminUserDetail(
+    Guid Id,
+    string FullName,
+    string Email,
+    string Timezone,
+    IReadOnlyList<string> Roles,
+    bool Locked,
+    bool OnboardingCompleted,
+    string PreferredLanguage,
+    string DietaryPreference,
+    decimal? CurrentWeightKg,
+    decimal? TargetWeightKg,
+    string EntitlementPlan,
+    string EntitlementStatus,
+    string? AssignedPlan,
+    string? PlanStartDate,
+    int MealLogs,
+    int WaterEntries,
+    int WeightEntries,
+    int ActivityLogs,
+    int SleepLogs,
+    int CheckIns,
+    IReadOnlyList<AdminWeightPoint> RecentWeight);
+
+public record LockUserRequest(bool Locked);
+public record CreateNutritionistRequest(string FullName, string Email, string Password);
+public record AdminPlanDto(Guid Id, string Name, string Description, int DurationDays, bool IsPublished, int DayCount, int AssignmentCount);
+public record AdminAuditDto(Guid Id, DateTime CreatedAtUtc, string ActorRole, string Action, string EntityName, string? EntityId, string? Detail);
+public record AdminAuditPage(int Page, int PageSize, int Total, IReadOnlyList<AdminAuditDto> Items);
 public record CategoryDto(Guid Id, string Name, string Slug, string GroceryCategory);

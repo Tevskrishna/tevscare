@@ -2,15 +2,24 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Tevscare.Domain.Identity;
+using Tevscare.Infrastructure.Identity;
 
 namespace Tevscare.Api.Tests;
 
 public class ApiFlowTests : IClassFixture<ApiFactory>
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+    private readonly ApiFactory _factory;
     private readonly HttpClient _client;
 
-    public ApiFlowTests(ApiFactory factory) => _client = factory.CreateClient();
+    public ApiFlowTests(ApiFactory factory)
+    {
+        _factory = factory;
+        _client = factory.CreateClient();
+    }
 
     [Fact]
     public async Task Register_rejects_a_short_password()
@@ -131,6 +140,50 @@ public class ApiFlowTests : IClassFixture<ApiFactory>
 
         var login = await _client.PostAsJsonAsync("/api/auth/login", new { email, password = "Reset1234" });
         Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+    }
+
+    [Fact]
+    public async Task Admin_dashboard_is_closed_to_members_and_open_to_admins()
+    {
+        var memberEmail = $"member-{Guid.NewGuid():N}@tevscare.test";
+        var member = await RegisterAsync(memberEmail);
+        using var denied = new HttpRequestMessage(HttpMethod.Get, "/api/admin/dashboard");
+        denied.Headers.Authorization = new AuthenticationHeaderValue("Bearer", member.Access);
+        Assert.Equal(HttpStatusCode.Forbidden, (await _client.SendAsync(denied)).StatusCode);
+
+        var adminEmail = $"admin-{Guid.NewGuid():N}@tevscare.test";
+        await RegisterAsync(adminEmail);
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var user = await users.FindByEmailAsync(adminEmail);
+            Assert.NotNull(user);
+            Assert.True((await users.AddToRoleAsync(user, Roles.Admin)).Succeeded);
+        }
+
+        var login = await _client.PostAsJsonAsync("/api/auth/login", new { email = adminEmail, password = "Test1234" });
+        login.EnsureSuccessStatusCode();
+        var adminToken = (await login.Content.ReadFromJsonAsync<JsonElement>(Json)).GetProperty("accessToken").GetString();
+        using var allowed = new HttpRequestMessage(HttpMethod.Get, "/api/admin/dashboard");
+        allowed.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        var dashboard = await _client.SendAsync(allowed);
+        var dashboardJson = await dashboard.Content.ReadFromJsonAsync<JsonElement>(Json);
+        Assert.Equal(HttpStatusCode.OK, dashboard.StatusCode);
+        Assert.True(dashboardJson.GetProperty("totalUsers").GetInt32() >= 1);
+
+        var coachEmail = $"coach-{Guid.NewGuid():N}@tevscare.test";
+        using var create = new HttpRequestMessage(HttpMethod.Post, "/api/admin/nutritionists");
+        create.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        create.Content = JsonContent.Create(new { fullName = "Coach Example", email = coachEmail, password = "Coach1234" });
+        var created = await _client.SendAsync(create);
+        Assert.Equal(HttpStatusCode.OK, created.StatusCode);
+
+        var coachLogin = await _client.PostAsJsonAsync("/api/auth/login", new { email = coachEmail, password = "Coach1234" });
+        coachLogin.EnsureSuccessStatusCode();
+        var coachToken = (await coachLogin.Content.ReadFromJsonAsync<JsonElement>(Json)).GetProperty("accessToken").GetString();
+        using var usersRequest = new HttpRequestMessage(HttpMethod.Get, "/api/admin/users");
+        usersRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", coachToken);
+        Assert.Equal(HttpStatusCode.Forbidden, (await _client.SendAsync(usersRequest)).StatusCode);
     }
 
     private async Task<(string Access, string Refresh)> RegisterAsync(string email)

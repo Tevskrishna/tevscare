@@ -22,6 +22,7 @@ public class UserProfile : AuditableEntity
     public TimeOnly DinnerTime { get; set; } = new(19, 30);
     public TimeOnly SleepTime { get; set; } = new(22, 0);
     public bool OnboardingCompleted { get; set; }
+    public string PreferredLanguage { get; set; } = "en";
     public ICollection<UserAllergy> Allergies { get; set; } = new List<UserAllergy>();
     public ICollection<UserFoodPreference> FoodPreferences { get; set; } = new List<UserFoodPreference>();
 }
@@ -91,6 +92,9 @@ public class ShoppingItemState : AuditableEntity
     public DateOnly RangeStart { get; set; }
     public int RangeDays { get; set; }
     public bool Purchased { get; set; }
+    public decimal? QuantityOverride { get; set; }
+    public decimal? ActualUnitPrice { get; set; }
+    public string? Notes { get; set; }
 }
 
 public class Entitlement : AuditableEntity

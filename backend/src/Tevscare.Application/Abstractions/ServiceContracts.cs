@@ -138,3 +138,16 @@ public interface IAdminContentService
     Task AssignPlanAsync(AssignPlanRequest request, CancellationToken cancellationToken);
     Task PublishAsync(Guid planId, bool published, CancellationToken cancellationToken);
 }
+
+public interface IAdminDirectoryService
+{
+    Task<AdminDashboardResponse> DashboardAsync(CancellationToken cancellationToken);
+    Task<AdminUserPage> UsersAsync(string? query, int page, int pageSize, CancellationToken cancellationToken);
+    Task<AdminUserDetail> UserAsync(Guid userId, CancellationToken cancellationToken);
+    Task LockAsync(Guid actorId, Guid userId, bool locked, CancellationToken cancellationToken);
+    Task<AdminUserListItem> CreateNutritionistAsync(Guid actorId, CreateNutritionistRequest request, CancellationToken cancellationToken);
+    Task<IReadOnlyList<AdminPlanDto>> PlansAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<GuidanceDto>> GuidanceAsync(CancellationToken cancellationToken);
+    Task<AdminAuditPage> AuditAsync(int page, int pageSize, CancellationToken cancellationToken);
+    Task RecordAsync(Guid actorId, string action, string entityName, string? entityId, string? detail, CancellationToken cancellationToken);
+}

@@ -78,6 +78,10 @@ public class ProfileService : IProfileService
         profile.LunchTime = Parsers.ParseTimeOr(request.LunchTime, profile.LunchTime);
         profile.DinnerTime = Parsers.ParseTimeOr(request.DinnerTime, profile.DinnerTime);
         profile.SleepTime = Parsers.ParseTimeOr(request.SleepTime, profile.SleepTime);
+        if (!string.IsNullOrWhiteSpace(request.PreferredLanguage))
+        {
+            profile.PreferredLanguage = request.PreferredLanguage.Trim().ToLowerInvariant();
+        }
 
         _db.Allergies.RemoveRange(profile.Allergies.ToList());
         _db.FoodPreferences.RemoveRange(profile.FoodPreferences.ToList());
@@ -200,6 +204,7 @@ public class ProfileService : IProfileService
             profile.Allergies.Select(item => item.Name).OrderBy(name => name).ToList(),
             profile.FoodPreferences.Select(item => new FoodPreferenceDto(item.Name, item.Kind.ToString())).ToList(),
             entitlement,
-            ProductDisclaimer.Text);
+            ProductDisclaimer.Text,
+            string.IsNullOrWhiteSpace(profile.PreferredLanguage) ? "en" : profile.PreferredLanguage);
     }
 }

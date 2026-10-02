@@ -122,8 +122,10 @@ public static class NotificationDefaults
                 WindowEnd = new TimeOnly(20, 0)
             },
             Pref(settings, NotificationCategory.Lunch, new TimeOnly(13, 0)),
+            Pref(settings, NotificationCategory.AfternoonSnack, new TimeOnly(16, 0)),
             Pref(settings, NotificationCategory.Activity, new TimeOnly(17, 30)),
             Pref(settings, NotificationCategory.Dinner, new TimeOnly(19, 30)),
+            Pref(settings, NotificationCategory.CheckIn, new TimeOnly(21, 0)),
             Pref(settings, NotificationCategory.Sleep, new TimeOnly(21, 30))
         ];
 
@@ -141,6 +143,27 @@ public static class NotificationDefaults
             p.IntervalMinutes,
             p.WindowStart,
             p.WindowEnd)).ToList();
+
+    public static IEnumerable<NotificationPreference> Missing(UserNotificationSettings settings)
+    {
+        NotificationPreference Make(NotificationCategory category, TimeOnly time) => new()
+        {
+            SettingsId = settings.Id,
+            Category = category,
+            Enabled = true,
+            LocalTime = time
+        };
+
+        if (settings.Preferences.All(item => item.Category != NotificationCategory.AfternoonSnack))
+        {
+            yield return Make(NotificationCategory.AfternoonSnack, new TimeOnly(16, 0));
+        }
+
+        if (settings.Preferences.All(item => item.Category != NotificationCategory.CheckIn))
+        {
+            yield return Make(NotificationCategory.CheckIn, new TimeOnly(21, 0));
+        }
+    }
 
     private static NotificationPreference Pref(UserNotificationSettings settings, NotificationCategory category, TimeOnly time) =>
         new()

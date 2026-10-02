@@ -56,7 +56,21 @@ npx expo start
 
 Then press `a` for Android or `i` for iOS. On a physical phone, set `EXPO_PUBLIC_API_URL` to your computer's LAN address, for example `http://192.168.1.20:5080`. Android emulator often needs `http://10.0.2.2:5080`.
 
-## 5. Tests
+## 5. Admin desk
+
+The admin site uses the same API. Sign in with the admin or nutritionist development account. A normal member account is rejected.
+
+```powershell
+cd admin
+npm install
+npm run dev
+```
+
+Desk: `http://localhost:5173`
+
+A nutritionist can see the dashboard, plans, foods, and guidance. User search, locking, nutritionist creation, and the audit log are admin only.
+
+## 6. Tests
 
 ```powershell
 dotnet test backend/Tevscare.sln
@@ -66,6 +80,10 @@ npm run typecheck
 ```
 
 API tests use SQLite and do not need Docker.
+
+## Current limits
+
+The app runs locally. It is not a store release. See [product status](docs/PRODUCT_STATUS.md) and the [release checklist](docs/RELEASE_CHECKLIST.md).
 
 ## Docs
 

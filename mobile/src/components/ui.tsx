@@ -10,10 +10,14 @@ import {
   useColorScheme,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
+import { useAppearance } from "../lib/appearance";
 import { dark, light, ThemeColors } from "../theme/tokens";
 
 export function useColors(): ThemeColors {
-  return useColorScheme() === "dark" ? dark : light;
+  const system = useColorScheme();
+  const mode = useAppearance((state) => state.mode);
+  const resolved = mode === "system" ? system : mode;
+  return resolved === "dark" ? dark : light;
 }
 
 export function AppHeader({ eyebrow, title, subtitle }: { eyebrow?: string; title: string; subtitle?: string }) {

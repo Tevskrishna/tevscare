@@ -97,6 +97,19 @@ public static class WeightTrendCalculator
         return latest.WeightKg - earlier.WeightKg;
     }
 
+    public static decimal? Average(IReadOnlyList<WeightPoint> points, int days)
+    {
+        if (points.Count == 0)
+        {
+            return null;
+        }
+
+        var latest = points.Max(point => point.Date);
+        var cutoff = latest.AddDays(1 - Math.Max(1, days));
+        var window = points.Where(point => point.Date >= cutoff && point.Date <= latest).ToList();
+        return window.Count == 0 ? null : decimal.Round(window.Average(point => point.WeightKg), 2);
+    }
+
     public static int? ProgressPercent(decimal? current, decimal? start, decimal? target)
     {
         if (current is null || start is null || target is null)
@@ -179,6 +192,8 @@ public sealed record ShoppingInputLine(
     string Unit,
     decimal? UnitPrice);
 
+public sealed record ShoppingAdjustment(decimal? Quantity, decimal? ActualUnitPrice, string? Notes);
+
 public sealed record ShoppingResultLine(
     Guid FoodId,
     string Name,
@@ -186,23 +201,49 @@ public sealed record ShoppingResultLine(
     decimal Quantity,
     string Unit,
     decimal? EstimatedCost,
-    bool Purchased);
+    bool Purchased,
+    decimal PlannedQuantity = 0,
+    decimal? ActualUnitPrice = null,
+    decimal? ActualCost = null,
+    string? Notes = null);
 
 public static class ShoppingListCalculator
 {
-    public static (IReadOnlyList<ShoppingResultLine> Lines, decimal TotalKnownCost, bool HasMissingPrices) Build(
+    public static (IReadOnlyList<ShoppingResultLine> Lines, decimal TotalKnownCost, bool HasMissingPrices, decimal ActualKnownCost) Build(
         IEnumerable<ShoppingInputLine> items,
-        IReadOnlyDictionary<Guid, bool> purchased)
+        IReadOnlyDictionary<Guid, bool> purchased,
+        IReadOnlyDictionary<Guid, ShoppingAdjustment>? adjustments = null)
     {
         var lines = items
             .GroupBy(i => (i.FoodId, i.Name, i.Category, i.Unit))
             .Select(g =>
             {
-                var quantity = decimal.Round(g.Sum(x => x.Quantity), 2);
+                var planned = decimal.Round(g.Sum(x => x.Quantity), 2);
+                ShoppingAdjustment? adjustment = null;
+                if (adjustments is not null && adjustments.TryGetValue(g.Key.FoodId, out var found))
+                {
+                    adjustment = found;
+                }
+
+                var quantity = adjustment?.Quantity is > 0 ? decimal.Round(adjustment.Quantity.Value, 2) : planned;
                 var price = g.Select(x => x.UnitPrice).FirstOrDefault(p => p is not null);
-                decimal? cost = price is null ? null : decimal.Round(quantity * price.Value, 2);
+                decimal? estimated = price is null ? null : decimal.Round(planned * price.Value, 2);
+                decimal? actual = adjustment?.ActualUnitPrice is decimal actualPrice
+                    ? decimal.Round(quantity * actualPrice, 2)
+                    : null;
                 purchased.TryGetValue(g.Key.FoodId, out var isPurchased);
-                return new ShoppingResultLine(g.Key.FoodId, g.Key.Name, g.Key.Category, quantity, g.Key.Unit, cost, isPurchased);
+                return new ShoppingResultLine(
+                    g.Key.FoodId,
+                    g.Key.Name,
+                    g.Key.Category,
+                    quantity,
+                    g.Key.Unit,
+                    estimated,
+                    isPurchased,
+                    planned,
+                    adjustment?.ActualUnitPrice,
+                    actual,
+                    adjustment?.Notes);
             })
             .OrderBy(x => x.Category)
             .ThenBy(x => x.Name)
@@ -210,7 +251,8 @@ public static class ShoppingListCalculator
 
         var missing = lines.Any(x => x.EstimatedCost is null);
         var total = lines.Sum(x => x.EstimatedCost ?? 0);
-        return (lines, decimal.Round(total, 2), missing);
+        var actualTotal = lines.Sum(x => x.ActualCost ?? 0);
+        return (lines, decimal.Round(total, 2), missing, decimal.Round(actualTotal, 2));
     }
 }
 
@@ -288,8 +330,10 @@ public static class NotificationScheduleBuilder
         "Water" => "Water",
         "Lunch" => "Lunch",
         "Activity" => "Activity",
+        "AfternoonSnack" => "Afternoon snack",
         "Dinner" => "Dinner",
         "Sleep" => "Sleep",
+        "CheckIn" => "Check-in",
         _ => "TEVSCARE"
     };
 
@@ -300,8 +344,10 @@ public static class NotificationScheduleBuilder
         "Water" => "Time for your next glass of water.",
         "Lunch" => "Check your lunch plan.",
         "Activity" => "Time for your daily walk.",
+        "AfternoonSnack" => "Check the afternoon snack on today's plan.",
         "Dinner" => "Your dinner window is approaching.",
         "Sleep" => "Start winding down for the night.",
+        "CheckIn" => "A short check-in if you want one.",
         _ => "Open TEVSCARE to check today's plan."
     };
 

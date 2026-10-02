@@ -1,0 +1,73 @@
+:root {
+  color: #14241c;
+  background: #f4f7f2;
+  font-family: "Segoe UI", sans-serif;
+  line-height: 1.4;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid #0f6b45; outline-offset: 2px; }
+
+.login-page, .shell { min-height: 100vh; }
+.login-page { display: grid; place-items: center; padding: 24px; }
+.card, .panel {
+  background: #fff;
+  border: 1px solid #d7e2d8;
+  border-radius: 16px;
+}
+.login-card { width: min(420px, 100%); padding: 28px; }
+h1, h2 { margin: 0 0 8px; }
+.muted { color: #5d726a; }
+.login-card form, .stack { display: grid; gap: 12px; }
+label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; }
+input, select, textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #c9d5cc;
+  border-radius: 8px;
+  background: #fff;
+}
+textarea { min-height: 80px; }
+.primary, .ghost {
+  min-height: 40px;
+  border-radius: 8px;
+  padding: 0 14px;
+}
+.primary { border: 0; background: #0f6b45; color: #fff; font-weight: 700; }
+.ghost { border: 1px solid #14352c; background: #fff; color: #14352c; }
+.error { color: #9f1239; }
+.ok { color: #067647; }
+
+.shell { display: grid; grid-template-columns: 220px 1fr; }
+nav { padding: 20px 14px; background: #10281c; color: #fff; }
+nav button {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+}
+nav button[aria-current="page"] { background: #1f8f4e; }
+main { padding: 20px; }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 16px 0; }
+.metric { padding: 14px; }
+.metric strong { display: block; font-size: 28px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: #fff; }
+th, td { padding: 8px 10px; border-bottom: 1px solid #e3ebe4; text-align: left; vertical-align: top; }
+.toolbar { display: flex; gap: 8px; align-items: end; margin: 12px 0; }
+.toolbar label { flex: 1; }
+.row-actions { display: flex; gap: 8px; }
+.empty { padding: 16px; }
+@media (max-width: 800px) {
+  .shell { grid-template-columns: 1fr; }
+  nav { display: flex; gap: 8px; overflow-x: auto; }
+  nav button { width: auto; }
+}

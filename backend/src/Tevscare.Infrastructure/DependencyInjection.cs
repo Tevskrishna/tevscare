@@ -75,6 +75,7 @@ public static class DependencyInjection
         services.AddScoped<IEntitlementService>(sp => sp.GetRequiredService<ContentService>());
         services.AddScoped<IAnalyticsService>(sp => sp.GetRequiredService<ContentService>());
         services.AddScoped<IAdminContentService>(sp => sp.GetRequiredService<ContentService>());
+        services.AddScoped<IAdminDirectoryService, AdminDirectoryService>();
         services.AddScoped<IEmailSender, LoggingEmailSender>();
         return services;
     }

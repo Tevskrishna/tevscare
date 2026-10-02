@@ -287,9 +287,19 @@ public class PlanExperienceService : IDashboardService, IDietPlanService, IMealL
             .Where(item => item.UserId == userId && item.RangeStart == loaded.Date && item.RangeDays == days)
             .ToListAsync(cancellationToken);
         var purchased = purchasedRows.ToDictionary(item => item.FoodId, item => item.Purchased);
-        var built = ShoppingListCalculator.Build(lines, purchased);
+        var adjustments = purchasedRows.ToDictionary(
+            item => item.FoodId,
+            item => new ShoppingAdjustment(item.QuantityOverride, item.ActualUnitPrice, item.Notes));
+        var built = ShoppingListCalculator.Build(lines, purchased, adjustments);
         var currency = loaded.Budget?.Currency ?? "INR";
-        return new ShoppingListResponse(loaded.Date.ToString("yyyy-MM-dd"), days, built.TotalKnownCost, built.HasMissingPrices, currency, built.Lines.Select(line => new ShoppingLineDto(line.FoodId, line.Name, line.Category, line.Quantity, line.Unit, line.EstimatedCost, line.Purchased)).ToList());
+        return new ShoppingListResponse(
+            loaded.Date.ToString("yyyy-MM-dd"),
+            days,
+            built.TotalKnownCost,
+            built.HasMissingPrices,
+            currency,
+            built.Lines.Select(line => new ShoppingLineDto(line.FoodId, line.Name, line.Category, line.Quantity, line.Unit, line.EstimatedCost, line.Purchased, line.PlannedQuantity, line.ActualUnitPrice, line.ActualCost, line.Notes)).ToList(),
+            built.ActualKnownCost);
     }
 
     public async Task<ShoppingListResponse> ToggleAsync(Guid userId, ShoppingToggleRequest request, CancellationToken cancellationToken)
@@ -305,6 +315,13 @@ public class PlanExperienceService : IDashboardService, IDietPlanService, IMealL
         }
 
         state.Purchased = request.Purchased;
+        if (request.UpdateDetails)
+        {
+            state.QuantityOverride = request.Quantity;
+            state.ActualUnitPrice = request.ActualUnitPrice;
+            state.Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
+        }
+
         await _db.SaveChangesAsync(cancellationToken);
         return await GetAsync(userId, request.RangeDays, start.ToString("yyyy-MM-dd"), cancellationToken);
     }

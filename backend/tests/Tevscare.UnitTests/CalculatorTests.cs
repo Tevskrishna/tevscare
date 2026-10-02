@@ -108,7 +108,37 @@ public class CalculatorTests
         Assert.Equal(40, line.EstimatedCost);
         Assert.True(line.Purchased);
         Assert.Equal(40, built.TotalKnownCost);
+        Assert.Equal(0, built.ActualKnownCost);
         Assert.False(built.HasMissingPrices);
+    }
+
+    [Fact]
+    public void Shopping_actual_price_uses_the_adjusted_quantity()
+    {
+        var food = Guid.NewGuid();
+        var built = ShoppingListCalculator.Build(
+            [new ShoppingInputLine(food, "Idly", "Grains", 4, "piece", 10)],
+            new Dictionary<Guid, bool> { [food] = true },
+            new Dictionary<Guid, ShoppingAdjustment> { [food] = new(2, 12, "store price") });
+
+        var line = Assert.Single(built.Lines);
+        Assert.Equal(4, line.PlannedQuantity);
+        Assert.Equal(2, line.Quantity);
+        Assert.Equal(40, line.EstimatedCost);
+        Assert.Equal(24, line.ActualCost);
+        Assert.Equal(24, built.ActualKnownCost);
+    }
+
+    [Fact]
+    public void Seven_day_weight_average_uses_only_the_recent_window()
+    {
+        var points = new List<WeightPoint>
+        {
+            new(new DateOnly(2026, 9, 1), 80),
+            new(new DateOnly(2026, 10, 1), 70),
+            new(new DateOnly(2026, 10, 2), 72)
+        };
+        Assert.Equal(71, WeightTrendCalculator.Average(points, 7));
     }
 
     [Fact]

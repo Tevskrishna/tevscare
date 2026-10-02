@@ -4,6 +4,7 @@ import { Text } from "react-native";
 import { api } from "../../src/api/client";
 import { Screen } from "../../src/components/Screen";
 import { AppHeader, ErrorState, LoadingState, PrimaryButton, SearchInput, StatCard, useColors } from "../../src/components/ui";
+import { track } from "../../src/lib/analytics";
 import { formatInr } from "../../src/lib/planning";
 
 type Budget = {
@@ -23,7 +24,7 @@ export default function BudgetScreen() {
   const colors = useColors();
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState("675");
-  const budget = useQuery({ queryKey: ["budget"], queryFn: () => api<Budget>("/api/budget") });
+  const budget = useQuery({ queryKey: ["budget"], queryFn: () => { track("budget_viewed"); return api<Budget>("/api/budget"); } });
   const save = useMutation({
     mutationFn: () => api("/api/budget", { method: "POST", body: JSON.stringify({ dailyBudgetAmount: Number(amount), currency: "INR" }) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["budget"] }),

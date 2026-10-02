@@ -68,6 +68,9 @@ public class UpdateProfileRequestValidator : AbstractValidator<UpdateProfileRequ
         RuleFor(x => x.SleepGoalMinutes).InclusiveBetween(240, 600);
         RuleFor(x => x.ActivityGoalMinutes).InclusiveBetween(10, 240);
         RuleFor(x => x.Timezone).NotEmpty().MaximumLength(80);
+        RuleFor(x => x.PreferredLanguage)
+            .Must(language => language is "en" or "te" or "hi" or "ta" or "kn" or "ml" or "bn" or "mr")
+            .When(x => !string.IsNullOrWhiteSpace(x.PreferredLanguage));
         RuleForEach(x => x.Allergies).MaximumLength(80);
         RuleForEach(x => x.FoodPreferences).ChildRules(pref =>
         {
@@ -113,6 +116,7 @@ public class LogActivityRequestValidator : AbstractValidator<LogActivityRequest>
     {
         RuleFor(x => x.ActivityType).NotEmpty().MaximumLength(80);
         RuleFor(x => x.DurationMinutes).InclusiveBetween(1, 300);
+        RuleFor(x => x.Steps).InclusiveBetween(0, 100000).When(x => x.Steps.HasValue);
         RuleFor(x => x.Notes).MaximumLength(300);
     }
 }
@@ -124,6 +128,8 @@ public class LogSleepRequestValidator : AbstractValidator<LogSleepRequest>
         RuleFor(x => x.DurationMinutes).InclusiveBetween(60, 720);
         RuleFor(x => x.Quality).InclusiveBetween(1, 5).When(x => x.Quality.HasValue);
         RuleFor(x => x.Notes).MaximumLength(300);
+        RuleFor(x => x.Bedtime).Matches(@"^\d{2}:\d{2}$").When(x => !string.IsNullOrWhiteSpace(x.Bedtime));
+        RuleFor(x => x.WakeTime).Matches(@"^\d{2}:\d{2}$").When(x => !string.IsNullOrWhiteSpace(x.WakeTime));
     }
 }
 
@@ -133,6 +139,9 @@ public class CheckInRequestValidator : AbstractValidator<CheckInRequest>
     {
         RuleFor(x => x.Mood).InclusiveBetween(1, 5).When(x => x.Mood.HasValue);
         RuleFor(x => x.Energy).InclusiveBetween(1, 5).When(x => x.Energy.HasValue);
+        RuleFor(x => x.Hunger).InclusiveBetween(1, 5).When(x => x.Hunger.HasValue);
+        RuleFor(x => x.Digestion).InclusiveBetween(1, 5).When(x => x.Digestion.HasValue);
+        RuleFor(x => x.SleepQuality).InclusiveBetween(1, 5).When(x => x.SleepQuality.HasValue);
         RuleFor(x => x.Notes).MaximumLength(500);
     }
 }
@@ -161,6 +170,9 @@ public class ShoppingToggleRequestValidator : AbstractValidator<ShoppingToggleRe
     {
         RuleFor(x => x.FoodId).NotEmpty();
         RuleFor(x => x.RangeDays).Must(d => d is 1 or 7 or 15 or 30);
+        RuleFor(x => x.Quantity).GreaterThan(0).LessThanOrEqualTo(10000).When(x => x.Quantity.HasValue);
+        RuleFor(x => x.ActualUnitPrice).InclusiveBetween(0, 10000).When(x => x.ActualUnitPrice.HasValue);
+        RuleFor(x => x.Notes).MaximumLength(300);
     }
 }
 
@@ -241,6 +253,19 @@ public class UpsertFoodRequestValidator : AbstractValidator<UpsertFoodRequest>
         RuleFor(x => x.FibreG).InclusiveBetween(0, 100);
         RuleFor(x => x.GroceryCategory).NotEmpty();
         RuleFor(x => x.SuitableFor).NotEmpty();
+    }
+}
+
+public class CreateNutritionistRequestValidator : AbstractValidator<CreateNutritionistRequest>
+{
+    public CreateNutritionistRequestValidator()
+    {
+        RuleFor(x => x.FullName).NotEmpty().MaximumLength(120);
+        RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(256);
+        RuleFor(x => x.Password).NotEmpty().MinimumLength(8).MaximumLength(100)
+            .Matches("[A-Z]").WithMessage("Password must include an uppercase letter.")
+            .Matches("[a-z]").WithMessage("Password must include a lowercase letter.")
+            .Matches("[0-9]").WithMessage("Password must include a number.");
     }
 }
 

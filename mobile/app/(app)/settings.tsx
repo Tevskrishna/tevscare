@@ -1,3 +1,4 @@
+import Constants from "expo-constants";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { api, clearSession, getCurrentUser, updateStoredUser } from "../../src/api/client";
@@ -6,6 +7,7 @@ import { AppHeader, ConfirmationModal, PrimaryButton, SearchInput, useColors } f
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import i18n from "../../src/lib/i18n";
+import { AppearanceMode, useAppearance } from "../../src/lib/appearance";
 import { useSession } from "../../src/lib/session";
 
 const locales = ["en", "te", "hi", "ta", "kn", "ml", "bn", "mr"];
@@ -13,6 +15,7 @@ const locales = ["en", "te", "hi", "ta", "kn", "ml", "bn", "mr"];
 export default function SettingsScreen() {
   const colors = useColors();
   const { t } = useTranslation();
+  const appearance = useAppearance((state) => state.mode);
   const user = getCurrentUser();
   const [timezone, setTimezone] = useState(user?.timezone ?? "Asia/Kolkata");
   const [confirm, setConfirm] = useState(false);
@@ -25,9 +28,19 @@ export default function SettingsScreen() {
         await api("/api/profile", { method: "PUT", body: JSON.stringify({ ...profile, timezone }) });
         if (user) await updateStoredUser({ ...user, timezone });
       }} />
+      <Text style={{ fontFamily: "JakartaSemi", color: colors.ink }}>Appearance</Text>
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        {(["system", "light", "dark"] as AppearanceMode[]).map((mode) => (
+          <Pressable key={mode} accessibilityRole="button" accessibilityState={{ selected: appearance === mode }} onPress={() => useAppearance.getState().setMode(mode)} style={{ minHeight: 44, paddingHorizontal: 12, justifyContent: "center" }}>
+            <Text style={{ fontFamily: "JakartaSemi", color: appearance === mode ? colors.primary : colors.ink }}>{mode}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <Text style={{ fontFamily: "Jakarta", color: colors.muted }}>Security: the session token stays in secure storage on this phone. Sign out or delete the account to remove it.</Text>
+      <Text style={{ fontFamily: "Jakarta", color: colors.muted }}>Version {Constants.expoConfig?.version ?? "1.0.0"}</Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {locales.map((locale) => (
-          <Pressable key={locale} accessibilityRole="button" onPress={() => i18n.changeLanguage(locale)} style={{ minHeight: 44, paddingHorizontal: 12, justifyContent: "center" }}>
+          <Pressable key={locale} accessibilityRole="button" onPress={async () => { await i18n.changeLanguage(locale); const profile = await api<Record<string, unknown>>("/api/profile"); await api("/api/profile", { method: "PUT", body: JSON.stringify({ ...profile, preferredLanguage: locale }) }); }} style={{ minHeight: 44, paddingHorizontal: 12, justifyContent: "center" }}>
             <Text style={{ fontFamily: "JakartaSemi", color: colors.primary }}>{locale}</Text>
           </Pressable>
         ))}

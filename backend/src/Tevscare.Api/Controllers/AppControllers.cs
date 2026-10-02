@@ -479,32 +479,47 @@ public class AnalyticsController : ControllerBase
 public class AdminController : ControllerBase
 {
     private readonly IAdminContentService _admin;
+    private readonly IAdminDirectoryService _directory;
     private readonly IEntitlementService _entitlements;
     private readonly ICurrentUser _current;
 
-    public AdminController(IAdminContentService admin, IEntitlementService entitlements, ICurrentUser current)
+    public AdminController(IAdminContentService admin, IAdminDirectoryService directory, IEntitlementService entitlements, ICurrentUser current)
     {
         _admin = admin;
+        _directory = directory;
         _entitlements = entitlements;
         _current = current;
     }
 
     [HttpPost("foods")]
-    public Task<FoodDto> CreateFood(UpsertFoodRequest request, CancellationToken cancellationToken) =>
-        _admin.UpsertFoodAsync(null, request, cancellationToken);
+    public async Task<FoodDto> CreateFood(UpsertFoodRequest request, CancellationToken cancellationToken)
+    {
+        var food = await _admin.UpsertFoodAsync(null, request, cancellationToken);
+        await _directory.RecordAsync(_current.UserId, "FoodCreated", "Food", food.Id.ToString(), food.Name, cancellationToken);
+        return food;
+    }
 
     [HttpPut("foods/{id:guid}")]
-    public Task<FoodDto> UpdateFood(Guid id, UpsertFoodRequest request, CancellationToken cancellationToken) =>
-        _admin.UpsertFoodAsync(id, request, cancellationToken);
+    public async Task<FoodDto> UpdateFood(Guid id, UpsertFoodRequest request, CancellationToken cancellationToken)
+    {
+        var food = await _admin.UpsertFoodAsync(id, request, cancellationToken);
+        await _directory.RecordAsync(_current.UserId, "FoodUpdated", "Food", food.Id.ToString(), food.Name, cancellationToken);
+        return food;
+    }
 
     [HttpPost("diet-plans")]
-    public Task<DietPlanSummaryDto> CreatePlan(CreateDietPlanRequest request, CancellationToken cancellationToken) =>
-        _admin.CreatePlanAsync(_current.UserId, request, cancellationToken);
+    public async Task<DietPlanSummaryDto> CreatePlan(CreateDietPlanRequest request, CancellationToken cancellationToken)
+    {
+        var plan = await _admin.CreatePlanAsync(_current.UserId, request, cancellationToken);
+        await _directory.RecordAsync(_current.UserId, "PlanCreated", "DietPlan", plan.Id.ToString(), plan.Name, cancellationToken);
+        return plan;
+    }
 
     [HttpPost("diet-plans/{id:guid}/publish")]
     public async Task<IActionResult> Publish(Guid id, [FromQuery] bool published = true, CancellationToken cancellationToken = default)
     {
         await _admin.PublishAsync(id, published, cancellationToken);
+        await _directory.RecordAsync(_current.UserId, published ? "PlanPublished" : "PlanUnpublished", "DietPlan", id.ToString(), null, cancellationToken);
         return NoContent();
     }
 

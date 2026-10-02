@@ -60,7 +60,8 @@ public class TrackingExperienceService : IWaterService, IWeightService, IActivit
             WeightTrendCalculator.Change(points, 7),
             WeightTrendCalculator.Change(points, 30),
             WeightTrendCalculator.ProgressPercent(current, profile.StartingWeightKg, profile.TargetWeightKg),
-            entries.Select(item => new WeightEntryDto(item.Id, item.LocalDate.ToString("yyyy-MM-dd"), item.WeightKg, item.IsMorning, item.Note)).ToList());
+            entries.Select(item => new WeightEntryDto(item.Id, item.LocalDate.ToString("yyyy-MM-dd"), item.WeightKg, item.IsMorning, item.Note)).ToList(),
+            WeightTrendCalculator.Average(points, 7));
     }
 
     public async Task<WeightEntryDto> LogAsync(Guid userId, LogWeightRequest request, CancellationToken cancellationToken)
@@ -108,6 +109,7 @@ public class TrackingExperienceService : IWaterService, IWeightService, IActivit
 
         log.ActivityType = request.ActivityType.Trim();
         log.DurationMinutes = request.DurationMinutes;
+        log.Steps = request.Steps;
         log.Completed = request.Completed || request.DurationMinutes >= profile.ActivityGoalMinutes;
         log.Notes = request.Notes?.Trim();
         await _db.SaveChangesAsync(cancellationToken);
@@ -138,6 +140,8 @@ public class TrackingExperienceService : IWaterService, IWeightService, IActivit
 
         log.DurationMinutes = request.DurationMinutes;
         log.Quality = request.Quality;
+        log.BedtimeLocal = string.IsNullOrWhiteSpace(request.Bedtime) ? log.BedtimeLocal : Parsers.ParseTime(request.Bedtime, "Bedtime");
+        log.WakeTimeLocal = string.IsNullOrWhiteSpace(request.WakeTime) ? log.WakeTimeLocal : Parsers.ParseTime(request.WakeTime, "Wake time");
         log.Notes = request.Notes?.Trim();
         await _db.SaveChangesAsync(cancellationToken);
         return MapSleep(log, profile.SleepGoalMinutes);
@@ -159,6 +163,9 @@ public class TrackingExperienceService : IWaterService, IWeightService, IActivit
 
         checkIn.Mood = request.Mood;
         checkIn.Energy = request.Energy;
+        checkIn.Hunger = request.Hunger;
+        checkIn.Digestion = request.Digestion;
+        checkIn.SleepQuality = request.SleepQuality;
         checkIn.Notes = request.Notes?.Trim();
         var existing = await _db.HabitChecks.Where(item => item.UserId == userId && item.LocalDate == local).ToListAsync(cancellationToken);
         _db.HabitChecks.RemoveRange(existing);
@@ -185,6 +192,7 @@ public class TrackingExperienceService : IWaterService, IWeightService, IActivit
         var series = await Series(userId, profile.WaterGoalMl, profile.ActivityGoalMinutes, start, end, cancellationToken);
         var weightPoints = series.Where(item => item.Weight is not null).Select(item => new WeightPoint(item.Date, item.Weight!.Value)).ToList();
         var average = series.Count == 0 ? 0 : Math.Round(series.Average(item => item.Adherence), 1);
+        var budget = await BudgetSpentAsync(userId, start, end, cancellationToken);
         return new ProgressResponse(
             days.ToString(),
             series.Where(item => item.Weight is not null).Select(item => Point(item.Date, item.Weight!.Value)).ToList(),
@@ -194,7 +202,8 @@ public class TrackingExperienceService : IWaterService, IWeightService, IActivit
             series.Select(item => Point(item.Date, item.Activity)).ToList(),
             series.Select(item => Point(item.Date, item.Sleep)).ToList(),
             WeightTrendCalculator.Change(weightPoints, days),
-            (decimal)average);
+            (decimal)average,
+            budget);
     }
 
     public async Task<IReadOnlyList<CalendarDayDto>> GetCalendarAsync(Guid userId, string? month, CancellationToken cancellationToken)
@@ -289,7 +298,7 @@ public class TrackingExperienceService : IWaterService, IWeightService, IActivit
             activity is not null && (activity.Completed || activity.DurationMinutes >= profile.ActivityGoalMinutes),
             sleep,
             weight);
-        return new CheckInResponse(local.ToString("yyyy-MM-dd"), checkIn?.Mood, checkIn?.Energy, checkIn?.Notes, new AdherenceSummaryDto(adherence.Score, MealMapper.AdherenceExplanation), habits);
+        return new CheckInResponse(local.ToString("yyyy-MM-dd"), checkIn?.Mood, checkIn?.Energy, checkIn?.Notes, new AdherenceSummaryDto(adherence.Score, MealMapper.AdherenceExplanation), habits, checkIn?.Hunger, checkIn?.Digestion, checkIn?.SleepQuality);
     }
 
     private async Task<List<HabitDto>> HabitList(Guid userId, DateOnly date, CancellationToken cancellationToken)
@@ -339,9 +348,39 @@ public class TrackingExperienceService : IWaterService, IWeightService, IActivit
         return list;
     }
 
+    private async Task<IReadOnlyList<ProgressPointDto>> BudgetSpentAsync(Guid userId, DateOnly start, DateOnly end, CancellationToken cancellationToken)
+    {
+        var items = await _db.MealLogItems.AsNoTracking()
+            .Where(item => item.MealLog.UserId == userId && item.MealLog.LocalDate >= start && item.MealLog.LocalDate <= end && item.FoodId != null)
+            .Select(item => new { item.MealLog.LocalDate, FoodId = item.FoodId!.Value, item.Quantity })
+            .ToListAsync(cancellationToken);
+        var overrides = await _db.FoodPrices.AsNoTracking().Where(item => item.UserId == userId).ToDictionaryAsync(item => item.FoodId, item => item.PricePerServing, cancellationToken);
+        var foodIds = items.Select(item => item.FoodId).Distinct().ToList();
+        var references = await _db.Foods.AsNoTracking().Where(item => foodIds.Contains(item.Id)).ToDictionaryAsync(item => item.Id, item => item.ReferencePriceInr, cancellationToken);
+        var points = new List<ProgressPointDto>();
+        for (var date = start; date <= end; date = date.AddDays(1))
+        {
+            decimal spent = 0;
+            foreach (var item in items.Where(entry => entry.LocalDate == date))
+            {
+                var price = overrides.TryGetValue(item.FoodId, out var custom)
+                    ? custom
+                    : references.GetValueOrDefault(item.FoodId);
+                if (price is decimal known)
+                {
+                    spent += item.Quantity * known;
+                }
+            }
+
+            points.Add(Point(date, decimal.Round(spent, 2)));
+        }
+
+        return points;
+    }
+
     private static ProgressPointDto Point(DateOnly date, decimal value) => new(date.ToString("yyyy-MM-dd"), value);
-    private static ActivityDto MapActivity(ActivityLog log, int goal) => new(log.Id, log.LocalDate.ToString("yyyy-MM-dd"), log.ActivityType, log.DurationMinutes, log.Completed, log.Notes, goal);
-    private static SleepDto MapSleep(SleepLog log, int goal) => new(log.Id, log.LocalDate.ToString("yyyy-MM-dd"), log.DurationMinutes, log.Quality, log.Notes, goal);
+    private static ActivityDto MapActivity(ActivityLog log, int goal) => new(log.Id, log.LocalDate.ToString("yyyy-MM-dd"), log.ActivityType, log.DurationMinutes, log.Completed, log.Notes, goal, log.Steps);
+    private static SleepDto MapSleep(SleepLog log, int goal) => new(log.Id, log.LocalDate.ToString("yyyy-MM-dd"), log.DurationMinutes, log.Quality, log.Notes, goal, log.BedtimeLocal is null ? null : Parsers.Clock(log.BedtimeLocal.Value), log.WakeTimeLocal is null ? null : Parsers.Clock(log.WakeTimeLocal.Value));
 
     private sealed record DaySeries(DateOnly Date, decimal? Weight, int Adherence, int Water, int Meals, int Activity, int Sleep, int MealsCompleted, int MealsPlanned);
 }

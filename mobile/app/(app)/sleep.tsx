@@ -8,15 +8,19 @@ import { AppHeader, ErrorState, PrimaryButton, SearchInput } from "../../src/com
 export default function SleepScreen() {
   const queryClient = useQueryClient();
   const [minutes, setMinutes] = useState("480");
+  const [bedtime, setBedtime] = useState("22:30");
+  const [wake, setWake] = useState("06:30");
   const [error, setError] = useState<string | null>(null);
   const save = useMutation({
-    mutationFn: () => postOrQueue("/api/sleep", { durationMinutes: Number(minutes) }),
+    mutationFn: () => postOrQueue("/api/sleep", { durationMinutes: Number(minutes), bedtime, wakeTime: wake }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
     onError: (caught) => setError(caught instanceof ApiError ? caught.message : "Sleep was not saved."),
   });
   return (
     <Screen>
       <AppHeader title="Sleep" subtitle="Record last night in minutes. 480 is eight hours. This is a log, not a diagnosis." />
+      <SearchInput value={bedtime} onChangeText={setBedtime} placeholder="Bedtime, 22:30" />
+      <SearchInput value={wake} onChangeText={setWake} placeholder="Wake time, 06:30" />
       <SearchInput value={minutes} onChangeText={setMinutes} placeholder="Minutes slept" />
       <PrimaryButton label="Save sleep" onPress={() => save.mutate()} />
       {error ? <ErrorState body={error} /> : null}

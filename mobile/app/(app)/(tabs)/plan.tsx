@@ -8,6 +8,8 @@ import { Screen } from "../../../src/components/Screen";
 import { AppHeader, Disclaimer, EmptyState, ErrorState, LoadingState, useColors } from "../../../src/components/ui";
 import { track } from "../../../src/lib/analytics";
 
+type CalendarDay = { planDayNumber?: number | null; mealsCompleted: number; mealsPlanned: number };
+
 type PlanSummary = { id: string; name: string; durationDays: number };
 type Plan = PlanSummary & { currentDayNumber?: number | null; disclaimer: string };
 type Day = { dayNumber: number; notes?: string | null; waterNote?: string | null; activityNote?: string | null; sleepNote?: string | null; meals: Meal[] };
@@ -24,6 +26,7 @@ export default function PlanScreen() {
   const plan = planQuery.data;
   const [day, setDay] = useState<number | null>(null);
   const selected = day ?? plan?.currentDayNumber ?? 1;
+  const calendar = useQuery({ queryKey: ["calendar-plan"], queryFn: () => cachedGet<CalendarDay[]>("cache.calendar", `/api/calendar?month=${new Date().toISOString().slice(0, 7)}`) });
   const detail = useQuery({
     queryKey: ["plan-day", plan?.id, selected],
     enabled: Boolean(plan?.id),
@@ -36,13 +39,20 @@ export default function PlanScreen() {
 
   return (
     <Screen>
-      <AppHeader eyebrow={plan.name} title={`Day ${selected}`} subtitle="Breakfast follows the 15-day rotation. Every meal is stored as plan content, so a provider can change it without an app update." />
+      <AppHeader eyebrow={plan.name} title={`Day ${selected}`} subtitle="Meals, water, activity and sleep come from the plan. A provider can change them without an app update." />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        {Array.from({ length: plan.durationDays }, (_, index) => index + 1).map((number) => (
-          <Pressable key={number} accessibilityRole="button" accessibilityLabel={`Day ${number}`} onPress={() => setDay(number)} style={{ minWidth: 48, minHeight: 48, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: number === selected ? colors.primary : colors.surface, borderWidth: 1, borderColor: colors.line }}>
-            <Text style={{ fontFamily: "JakartaSemi", color: number === selected ? colors.onPrimary : colors.ink }}>{number}</Text>
-          </Pressable>
-        ))}
+        {Array.from({ length: plan.durationDays }, (_, index) => index + 1).map((number) => {
+          const today = plan.currentDayNumber ?? 1;
+          const logged = calendar.data?.find((item) => item.planDayNumber === number);
+          const done = Boolean(logged && logged.mealsPlanned > 0 && logged.mealsCompleted >= logged.mealsPlanned);
+          const label = number === today ? "Today" : number < today ? (done ? "Logged" : "Past") : "Ahead";
+          return (
+            <Pressable key={number} accessibilityRole="button" accessibilityLabel={`Day ${number}, ${label}`} onPress={() => { setDay(number); track("plan_opened"); }} style={{ minWidth: 52, minHeight: 56, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: number === selected ? colors.primary : colors.surface, borderWidth: 1, borderColor: number === today ? colors.accent : colors.line }}>
+              <Text style={{ fontFamily: "JakartaSemi", color: number === selected ? colors.onPrimary : colors.ink }}>{number}</Text>
+              <Text style={{ fontFamily: "Jakarta", fontSize: 10, color: number === selected ? colors.onPrimary : colors.muted }}>{label}</Text>
+            </Pressable>
+          );
+        })}
       </View>
       {detail.isLoading ? <LoadingState /> : null}
       {detail.data ? (

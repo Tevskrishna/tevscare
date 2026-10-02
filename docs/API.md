@@ -35,7 +35,7 @@ Auth routes are limited to 30 requests per minute per client.
 ## Money, food, reminders
 
 - `GET /api/budget` `POST /api/budget` `POST /api/budget/prices`
-- `GET /api/shopping-list?days=1|7|15|30` `POST /api/shopping-list/toggle`
+- `GET /api/shopping-list?days=1|7|15|30` `POST /api/shopping-list/toggle` — toggle sets purchased. Send `updateDetails: true` to also save quantity, actual unit price, and a note. Estimated cost stays the plan estimate. Actual cost is filled only when a unit price is entered.
 - `GET /api/foods?query=&category=&page=&pageSize=`
 - `GET /api/foods/categories` `GET /api/foods/{id}`
 - `GET /api/notifications/preferences` `PUT /api/notifications/preferences`
@@ -55,5 +55,13 @@ Auth routes are limited to 30 requests per minute per client.
 - `POST /api/admin/plans/{planId}/publish`
 - `POST /api/admin/plans/assign`
 - `POST /api/admin/entitlements`
+- `GET /api/admin/dashboard` — counts the database can support. Does not invent notification or payment totals
+- `GET /api/admin/plans` — includes drafts
+- `GET /api/admin/guidance`
+- `GET /api/admin/users` — `ADMIN` only
+- `GET /api/admin/users/{id}` — `ADMIN` only. No password or token
+- `POST /api/admin/users/{id}/lock` — `{ locked: true|false }`, `ADMIN` only
+- `POST /api/admin/nutritionists` — `ADMIN` only
+- `GET /api/admin/audit` — `ADMIN` only
 
 `GET /health` is anonymous.

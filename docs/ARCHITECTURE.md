@@ -5,6 +5,7 @@ TEVSCARE is a modular monolith plus an Expo client.
 ```
 /backend     ASP.NET Core API, domain, application, infrastructure
 /mobile      Expo Router app
+/admin       Vite + React desk for ADMIN and NUTRITIONIST
 /docs        Setup and design notes
 /tests       Pointers only. Test projects stay next to their runtime.
 ```
@@ -42,7 +43,7 @@ The phone caches the dashboard and plan JSON. Water, weight, activity, sleep, an
 
 ## Notifications
 
-The API returns a daily schedule with quiet hours already considered by the schedule builder. The phone schedules those times with `expo-notifications`. Push delivery is a later adapter. The permission prompt runs once, after the notifications screen explains why.
+The API returns a daily schedule with quiet hours already considered by the schedule builder. The phone schedules those times with `expo-notifications`. `notificationTransport` is `"local"`. Push delivery is not implemented. The permission prompt runs once, after the notifications screen explains why.
 
 ## Localization
 

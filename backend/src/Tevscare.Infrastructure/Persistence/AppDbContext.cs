@@ -45,6 +45,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
     public DbSet<DailyCheckIn> CheckIns => Set<DailyCheckIn>();
     public DbSet<HabitCheck> HabitChecks => Set<HabitCheck>();
     public DbSet<AdherenceSnapshot> AdherenceSnapshots => Set<AdherenceSnapshot>();
+    public DbSet<AdminAuditEntry> AdminAudit => Set<AdminAuditEntry>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -61,6 +62,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
             entity.HasIndex(x => x.UserId).IsUnique();
             entity.Property(x => x.DietaryPreference).HasConversion<string>().HasMaxLength(40);
             entity.Property(x => x.ActivityLevel).HasConversion<string>().HasMaxLength(40);
+            entity.Property(x => x.PreferredLanguage).HasMaxLength(8);
         });
 
         builder.Entity<UserAllergy>(entity =>
@@ -106,6 +108,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
 
         builder.Entity<ShoppingItemState>(entity =>
         {
+            entity.Property(x => x.Notes).HasMaxLength(300);
             entity.HasIndex(x => new { x.UserId, x.FoodId, x.RangeStart, x.RangeDays }).IsUnique();
         });
 
@@ -256,6 +259,17 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
             entity.HasIndex(x => new { x.UserId, x.HabitCode, x.LocalDate }).IsUnique();
         });
         builder.Entity<AdherenceSnapshot>(entity => entity.HasIndex(x => new { x.UserId, x.LocalDate }).IsUnique());
+
+        builder.Entity<AdminAuditEntry>(entity =>
+        {
+            entity.Property(x => x.ActorRole).HasMaxLength(80);
+            entity.Property(x => x.Action).HasMaxLength(80);
+            entity.Property(x => x.EntityName).HasMaxLength(80);
+            entity.Property(x => x.EntityId).HasMaxLength(80);
+            entity.Property(x => x.Detail).HasMaxLength(500);
+            entity.HasIndex(x => x.CreatedAtUtc);
+            entity.HasIndex(x => new { x.EntityName, x.EntityId });
+        });
 
         foreach (var property in builder.Model.GetEntityTypes().SelectMany(t => t.GetProperties()))
         {

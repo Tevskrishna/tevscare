@@ -3,10 +3,17 @@ type AnalyticsEvent =
   | "onboarding_completed"
   | "meal_viewed"
   | "meal_completed"
+  | "meal_logged"
   | "water_logged"
   | "weight_logged"
+  | "activity_logged"
   | "plan_completed"
-  | "notification_opened";
+  | "plan_opened"
+  | "notification_opened"
+  | "shopping_list_opened"
+  | "budget_viewed"
+  | "checkin_completed"
+  | "reminder_enabled";
 
 type Sink = (name: AnalyticsEvent, properties?: Record<string, string>) => void;
 

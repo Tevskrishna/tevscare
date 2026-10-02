@@ -4,6 +4,8 @@ import { Platform } from "react-native";
 import { api } from "../api/client";
 import { isQuietTime } from "./planning";
 
+export const notificationTransport = "local" as const;
+
 const ASKED = "tevscare.notification-asked";
 
 Notifications.setNotificationHandler({

@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { addAnalyticsSink, track } from "../src/lib/analytics";
+import { useAppearance } from "../src/lib/appearance";
 import "../src/lib/i18n";
 import { api } from "../src/api/client";
 
@@ -32,6 +33,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (ready) {
       SplashScreen.hideAsync().catch(() => undefined);
+      useAppearance.getState().hydrate().catch(() => undefined);
       track("app_opened");
     }
   }, [ready]);

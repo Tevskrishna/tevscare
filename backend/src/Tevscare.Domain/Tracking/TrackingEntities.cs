@@ -48,6 +48,7 @@ public class ActivityLog : AuditableEntity
     public DateOnly LocalDate { get; set; }
     public string ActivityType { get; set; } = "Walk";
     public int DurationMinutes { get; set; }
+    public int? Steps { get; set; }
     public bool Completed { get; set; }
     public string? Notes { get; set; }
 }
@@ -58,6 +59,8 @@ public class SleepLog : AuditableEntity
     public DateOnly LocalDate { get; set; }
     public int DurationMinutes { get; set; }
     public int? Quality { get; set; }
+    public TimeOnly? BedtimeLocal { get; set; }
+    public TimeOnly? WakeTimeLocal { get; set; }
     public string? Notes { get; set; }
 }
 
@@ -67,6 +70,9 @@ public class DailyCheckIn : AuditableEntity
     public DateOnly LocalDate { get; set; }
     public int? Mood { get; set; }
     public int? Energy { get; set; }
+    public int? Hunger { get; set; }
+    public int? Digestion { get; set; }
+    public int? SleepQuality { get; set; }
     public string? Notes { get; set; }
 }
 

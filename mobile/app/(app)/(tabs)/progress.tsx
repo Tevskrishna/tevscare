@@ -7,7 +7,7 @@ import { Screen } from "../../../src/components/Screen";
 import { AppHeader, EmptyState, ErrorState, LoadingState, useColors } from "../../../src/components/ui";
 
 type Point = { date: string; value: number };
-type Progress = { range: string; weight: Point[]; adherence: Point[]; water: Point[]; meals: Point[]; activity: Point[]; sleep: Point[]; weightChange?: number | null; averageAdherence: number };
+type Progress = { range: string; weight: Point[]; adherence: Point[]; water: Point[]; meals: Point[]; activity: Point[]; sleep: Point[]; budget?: Point[] | null; weightChange?: number | null; averageAdherence: number };
 
 function Chart({ points }: { points: Point[] }) {
   const colors = useColors();
@@ -57,6 +57,8 @@ export default function ProgressScreen() {
           <Chart points={progress.data.activity} />
           <Text style={{ fontFamily: "JakartaSemi", color: colors.ink }}>Sleep</Text>
           <Chart points={progress.data.sleep} />
+          <Text style={{ fontFamily: "JakartaSemi", color: colors.ink }}>Estimated food spend</Text>
+          <Chart points={progress.data.budget ?? []} />
         </>
       ) : null}
     </Screen>

@@ -9,7 +9,7 @@ import { track } from "../../src/lib/analytics";
 import { Image, Text } from "react-native";
 import { loadLocalPhoto, pickLocalPhoto } from "../../src/lib/photos";
 
-type History = { currentKg?: number | null; targetKg?: number | null; weeklyChangeKg?: number | null; monthlyChangeKg?: number | null; entries: { localDate: string; weightKg: number }[] };
+type History = { currentKg?: number | null; targetKg?: number | null; weeklyChangeKg?: number | null; monthlyChangeKg?: number | null; sevenDayAverageKg?: number | null; entries: { localDate: string; weightKg: number }[] };
 
 export default function WeightScreen() {
   const colors = useColors();
@@ -40,7 +40,7 @@ export default function WeightScreen() {
     <Screen>
       <AppHeader title="Weight" subtitle="Morning weight is enough. The chart describes change and trend. It does not grade you." />
       <WeightTracker current={data.currentKg} target={data.targetKg} change={change} />
-      <Text style={{ fontFamily: "Jakarta", color: colors.muted }}>This month: {data.monthlyChangeKg ?? 0} kg change</Text>
+      <Text style={{ fontFamily: "Jakarta", color: colors.muted }}>7-day average {data.sevenDayAverageKg ?? "—"} kg · this month {data.monthlyChangeKg ?? 0} kg change</Text>
       {photo ? <Image source={{ uri: photo }} accessibilityLabel="Morning weight photo" style={{ width: "100%", height: 180, borderRadius: 16 }} /> : null}
       <SecondaryButton label="Add a photo" onPress={async () => setPhoto(await pickLocalPhoto("weight-today"))} />
       <SearchInput value={value} onChangeText={setValue} placeholder="Today's weight in kg" />
